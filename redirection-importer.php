@@ -8,6 +8,10 @@
 * Author URI: https://paer-henriksson.com
 **/
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 defined( 'ABSPATH' ) or die( 'Forbidden' );
 
 function google_api_for_sheets() {
@@ -86,10 +90,6 @@ function redirecion_importer_ajax() {
     $generated_301_array = [];
     $generated_redirects = '';
     $generated_redirects .= '# [generated-redirects]' . PHP_EOL;
-    $generated_redirects .= '# Next line is for testing that the htaccess-file is not corrupt after an import' . PHP_EOL;
-    $generated_redirects .= 'redirect 301 /htaccess_test-redirected.html /htaccess_test.html' . PHP_EOL;
-    $generated_redirects .= '# Here comes the imported redirects, especially for you my friend' . PHP_EOL;
-
     foreach($columns as $col) {
         $generated_redirects .= 'Redirect 301 ' . parse_url(trim($col[0]), PHP_URL_PATH) . ' ' . trim($col[1]) . PHP_EOL;
         $generated_301_array[] = [
@@ -99,8 +99,10 @@ function redirecion_importer_ajax() {
     }
     
     $generated_redirects .= '# [end-of-generated-redirects]' . PHP_EOL;
-
+    
+    
     $htaccess = file_get_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess');
+    $original_htaccess = $htaccess;
 
     preg_match('/\#[\s]*\[generated\-redirects\][\s]*[\n]/', $htaccess, $matches, PREG_OFFSET_CAPTURE);
 
@@ -152,21 +154,19 @@ function redirecion_importer_ajax() {
         $htaccess = $htaccess . $generated_redirects;
     }
 
-    file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', trim($htaccess));
-
     // testing the htaccess-file 
-
     $http = curl_init(plugin_dir_path( __DIR__ ). '/htaccess_test-redirected.html');
     $result = curl_exec($http);
     $curl_code = curl_getinfo($http, CURLINFO_HTTP_CODE);
     
-    if($curl_code == 301) {
+    if ($curl_code == 301) {
+        file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', trim($htaccess));
         $htaccess_test_result = '<p style="font-size:26px;color:#1fb800;">The .htaccess is working, the import was successful but please test all URLs to make sure</p>';
     } else {
-        $htaccess_test_result = '<p style="font-size:22px;color:#a80a0a;">Warning, htaccess might be broken, please spin it back to a previous version</p>';
+        file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', $original_htaccess);
+        $htaccess_test_result = '<p style="font-size:22px;color:#a80a0a;">Warning, htaccess was detected to be broken, the previous version was put back in place</p>';
     }
 
-    // writing feedback for the user
     echo $htaccess_test_result;
     echo "<h3>Redirects already in the file</h3>" . PHP_EOL;
 
