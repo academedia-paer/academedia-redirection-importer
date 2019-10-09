@@ -1,0 +1,5 @@
+{
+    "name": "academedia-redirection-importer",
+    "description": "Let's import some redirections",
+    "type": "wordpress-plugin"
+}
