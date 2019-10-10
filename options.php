@@ -60,6 +60,7 @@ function redirection_importer_options() {
 		$generated_start_pos = $matches[0][1];
 	}
 
+	$generated_segment = ' ';
 	if ($contained_already_generated_redirects) {
 		preg_match('/\[end\-of\-generated\-redirects\][\s]*([\n]|)/', $htaccess, $matches, PREG_OFFSET_CAPTURE);
 		$generated_end_pos = $matches[0][1] + strlen('[end-of-generated-redirects]');
