@@ -174,7 +174,8 @@ function redirecion_importer_ajax() {
     } else {
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', $original_htaccess);
         $htaccess_test_result = '<p style="font-size:22px;color:#a80a0a;">Warning, htaccess was detected to be broken, the previous version was put back in place</p>';
-        echo $htaccess_test_result;
+        echo $htaccess_test_result . PHP_EOL;
+        echo $htaccess;
         wp_die();
     }
 
