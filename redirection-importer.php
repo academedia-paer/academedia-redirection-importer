@@ -111,7 +111,7 @@ function redirecion_importer_ajax() {
     
     $generated_redirects .= '# [end-of-generated-redirects]' . PHP_EOL;
     
-    $htaccess = file_get_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess');
+    $htaccess = file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess');
     $original_htaccess = $htaccess;
 
     preg_match('/\#[\s]*\[generated\-redirects\][\s]*[\n]/', $htaccess, $matches, PREG_OFFSET_CAPTURE);
@@ -165,7 +165,7 @@ function redirecion_importer_ajax() {
     }
 
     //write the htaccess-file
-    file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', trim($htaccess));
+    file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', trim($htaccess));
 
     // testing the htaccess-file 
     $http = curl_init(plugin_dir_url( __DIR__ ). '/htaccess_test-redirected.html');
@@ -175,7 +175,7 @@ function redirecion_importer_ajax() {
     if ($curl_code == 301) {
         $htaccess_test_result = '<p style="font-size:26px;color:#1fb800;">The .htaccess is working, the import was successful but please test all URLs to make sure</p>';
     } else {
-        file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', $original_htaccess);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', $original_htaccess);
         $htaccess_test_result = '<p style="font-size:22px;color:#a80a0a;">Warning, htaccess was detected to be broken, the previous version was put back in place</p>';
         echo $htaccess_test_result;
         wp_die();
@@ -232,5 +232,3 @@ function has_redirect($from,$hay) {
     }
     return false;
 }
-
-
