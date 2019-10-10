@@ -32,8 +32,15 @@ function redirecion_importer_ajax() {
         $client->setScopes(Google_Service_Sheets::SPREADSHEETS_READONLY);
         $client->setAuthConfig(__DIR__ . '/credentials.json');
         $client->setAccessType('offline');
-        $client->setPrompt('select_account consent');
 
+        return $client;
+
+        /*
+        $client->setAuthConfig(__DIR__ . '/credentials.json');
+        $client->setAccessType('offline');
+        */
+        // $client->setPrompt('select_account consent');
+ 
         // Load previously authorized token from a file, if it exists.
         // The file token.json stores the user's access and refresh tokens, and is
         // created automatically when the authorization flow completes for the first
@@ -43,7 +50,7 @@ function redirecion_importer_ajax() {
             $accessToken = json_decode(file_get_contents($tokenPath), true);
             $client->setAccessToken($accessToken);
         }
-
+        
         // If there is no previous token or it's expired.
         if ($client->isAccessTokenExpired()) {
             // Refresh the token if possible, else fetch a new one.
@@ -82,10 +89,15 @@ function redirecion_importer_ajax() {
 
     $service = new Google_Service_Sheets($client);
 
-    $columns = $service->spreadsheets_values->get($sheet_id, '!A1:I');
     $generated_301_array = [];
     $generated_redirects = '';
     $generated_redirects .= '# [generated-redirects]' . PHP_EOL;
+    $generated_redirects .= '# Testing htaccess' . PHP_EOL;
+    $generated_redirects .= 'Redirect 301 /wp-content/plugins/academedia-redirection-importer/htaccess_test-redirected.html ' . plugin_dir_url(__FILE__) . 'htaccess_test.html' . PHP_EOL;
+    $generated_redirects .= '# END OF Testing htaccess' . PHP_EOL;
+
+    $columns = $service->spreadsheets_values->get($sheet_id, '!A1:I');
+
     foreach($columns as $col) {
         $generated_redirects .= 'Redirect 301 ' . parse_url(trim($col[0]), PHP_URL_PATH) . ' ' . trim($col[1]) . PHP_EOL;
         $generated_301_array[] = [
@@ -95,7 +107,6 @@ function redirecion_importer_ajax() {
     }
     
     $generated_redirects .= '# [end-of-generated-redirects]' . PHP_EOL;
-    
     
     $htaccess = file_get_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess');
     $original_htaccess = $htaccess;
@@ -150,17 +161,21 @@ function redirecion_importer_ajax() {
         $htaccess = $htaccess . $generated_redirects;
     }
 
+    //write the htaccess-file
+    file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', trim($htaccess));
+
     // testing the htaccess-file 
-    $http = curl_init(plugin_dir_path( __DIR__ ). '/htaccess_test-redirected.html');
+    $http = curl_init(plugin_dir_url( __DIR__ ). '/htaccess_test-redirected.html');
     $result = curl_exec($http);
     $curl_code = curl_getinfo($http, CURLINFO_HTTP_CODE);
-    
+
     if ($curl_code == 301) {
-        file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', trim($htaccess));
         $htaccess_test_result = '<p style="font-size:26px;color:#1fb800;">The .htaccess is working, the import was successful but please test all URLs to make sure</p>';
     } else {
         file_put_contents(plugin_dir_path( __FILE__ ) . '../../../.htaccess', $original_htaccess);
         $htaccess_test_result = '<p style="font-size:22px;color:#a80a0a;">Warning, htaccess was detected to be broken, the previous version was put back in place</p>';
+        echo $htaccess_test_result;
+        wp_die();
     }
 
     echo $htaccess_test_result;
