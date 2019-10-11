@@ -8,10 +8,6 @@
 * Author URI: https://paer-henriksson.com
 **/
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 defined( 'ABSPATH' ) or die( 'Forbidden' );
 
 function google_api_for_sheets() {
@@ -94,10 +90,10 @@ function redirecion_importer_ajax() {
     $service = new Google_Service_Sheets($client);
 
     $generated_301_array = [];
-    $generated_redirects = '';
+    $generated_redirects = PHP_EOL;
     $generated_redirects .= '# [generated-redirects]' . PHP_EOL;
     $generated_redirects .= '# Testing htaccess' . PHP_EOL;
-    $generated_redirects .= 'Redirect 301 /wp-content/plugins/academedia-redirection-importer/htaccess_test-redirected.html ' . plugin_dir_url(__FILE__) . 'htaccess_test.html' . PHP_EOL;
+    $generated_redirects .= 'Redirect 301 /wp-content/plugins/academedia-redirection-importer/htaccess_test.html ' . plugin_dir_url(__FILE__) . 'htaccess_test.html' . PHP_EOL;
     $generated_redirects .= '# END OF Testing htaccess' . PHP_EOL;
 
     $columns = $service->spreadsheets_values->get($sheet_id, '!A1:I');
@@ -112,7 +108,7 @@ function redirecion_importer_ajax() {
     
     $generated_redirects .= '# [end-of-generated-redirects]' . PHP_EOL;
     
-    $htaccess = file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess');
+    $htaccess = trim(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess'));
     $original_htaccess = $htaccess;
 
     preg_match('/\#[\s]*\[generated\-redirects\][\s]*[\n]/', $htaccess, $matches, PREG_OFFSET_CAPTURE);
@@ -169,11 +165,10 @@ function redirecion_importer_ajax() {
     file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', trim($htaccess));
 
     // testing the htaccess-file 
-    $http = curl_init(plugin_dir_url( __DIR__ ). '/htaccess_test-redirected.html');
-    $result = curl_exec($http);
-    $curl_code = curl_getinfo($http, CURLINFO_HTTP_CODE);
+    $test_result = file_get_contents(plugin_dir_url(__FILE__) . 'htaccess_test-redirected.html');
+    echo $test_result; wp_die();
 
-    if ($curl_code == 301) {
+    if ($test_result !== false) {
         $htaccess_test_result = '<p style="font-size:26px;color:#1fb800;">The .htaccess is working, the import was successful but please test all URLs to make sure</p>';
     } else {
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', $original_htaccess);
