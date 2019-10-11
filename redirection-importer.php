@@ -93,7 +93,7 @@ function redirecion_importer_ajax() {
     $generated_redirects = PHP_EOL;
     $generated_redirects .= '# [generated-redirects]' . PHP_EOL;
     $generated_redirects .= '# Testing htaccess' . PHP_EOL;
-    $generated_redirects .= 'Redirect 301 /wp-content/plugins/academedia-redirection-importer/htaccess_test.html ' . plugin_dir_url(__FILE__) . 'htaccess_test.html' . PHP_EOL;
+    $generated_redirects .= 'Redirect 301 /wp-content/plugins/academedia-redirection-importer/htaccess_test-redirected.html ' . plugin_dir_url(__FILE__) . 'htaccess_test.html' . PHP_EOL;
     $generated_redirects .= '# END OF Testing htaccess' . PHP_EOL;
 
     $columns = $service->spreadsheets_values->get($sheet_id, '!A1:I');
@@ -164,16 +164,15 @@ function redirecion_importer_ajax() {
     //write the htaccess-file
     file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', trim($htaccess));
 
-    // testing the htaccess-file 
-    $test_result = file_get_contents(plugin_dir_url(__FILE__) . 'htaccess_test-redirected.html');
+    // test the htaccess-file
+    $file_headers = @get_headers(plugin_dir_url(__FILE__) . 'htaccess_test-redirected.html');
 
-    if ($test_result !== false) {
+    if ($file_headers[0] == 'HTTP/1.1 301 Moved Permanently') {
         $htaccess_test_result = '<p style="font-size:26px;color:#1fb800;">The .htaccess is working, the import was successful but please test all URLs to make sure</p>';
     } else {
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . '/.htaccess', $original_htaccess);
         $htaccess_test_result = '<p style="font-size:22px;color:#a80a0a;">Warning, htaccess was detected to be broken, the previous version was put back in place</p>';
         echo $htaccess_test_result . PHP_EOL;
-        echo $htaccess;
         wp_die();
     }
 
