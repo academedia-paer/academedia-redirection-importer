@@ -166,7 +166,6 @@ function redirecion_importer_ajax() {
 
     // testing the htaccess-file 
     $test_result = file_get_contents(plugin_dir_url(__FILE__) . 'htaccess_test-redirected.html');
-    echo $test_result; wp_die();
 
     if ($test_result !== false) {
         $htaccess_test_result = '<p style="font-size:26px;color:#1fb800;">The .htaccess is working, the import was successful but please test all URLs to make sure</p>';
