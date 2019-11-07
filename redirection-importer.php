@@ -8,6 +8,9 @@
 * Author URI: https://paer-henriksson.com
 **/
 
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 defined( 'ABSPATH' ) or die( 'Forbidden' );
 
 function google_api_for_sheets() {
